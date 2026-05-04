@@ -5,10 +5,12 @@ import {
 } from 'recharts';
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
+import { useOrganization } from '@clerk/clerk-react';
 
 const PROGRESS_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#64748b'];
 
 const Dashboard = () => {
+  const { organization } = useOrganization();
   const [summary, setSummary] = useState({ bankBalance: 0, totalCredit: 0, totalDebit: 0, totalInvested: 0 });
   const [dailyData, setDailyData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
@@ -37,7 +39,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchData();
-  }, [selectedMonth, selectedYear]);
+  }, [selectedMonth, selectedYear, organization?.id]);
 
   if (loading && summary.bankBalance === 0) {
     return <div className="py-10 text-center text-slate-500 dark:text-slate-400">Loading dashboard...</div>;

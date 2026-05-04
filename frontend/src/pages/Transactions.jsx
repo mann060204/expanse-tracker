@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useOrganization } from '@clerk/clerk-react';
 import api from '../services/api';
 import TransactionForm from '../components/TransactionForm';
 import TransactionTable from '../components/TransactionTable';
@@ -6,6 +7,7 @@ import { Plus, Download, X, Calendar } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const Transactions = () => {
+  const { organization } = useOrganization();
   const [transactions, setTransactions] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -31,7 +33,7 @@ const Transactions = () => {
 
   useEffect(() => {
     fetchTransactions();
-  }, []);
+  }, [organization?.id]);
 
   const handleSaveTransaction = async (formData) => {
     try {
