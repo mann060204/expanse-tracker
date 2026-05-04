@@ -15,24 +15,52 @@ app.use(morgan('dev'));
 
 // Database Connection Middleware
 // In a serverless environment like Vercel, this ensures the DB connects before handling the route
+let cached = global.mongoose;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
 const connectDB = async () => {
-  if (mongoose.connection.readyState >= 1) {
-    return;
+  if (cached.conn) return cached.conn;
+  
+  if (!process.env.MONGO_URI) {
+    console.error("MONGO_URI is missing in environment variables.");
+    return null;
   }
+
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false, // Fail fast if not connected
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of hanging
+    };
+    // Trim to remove any accidental invisible spaces pasted from the dashboard
+    const uri = process.env.MONGO_URI.trim();
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
+      console.log('Connected to MongoDB Atlas');
+      return mongoose;
+    }).catch(err => {
+      console.error('MongoDB connection error:', err);
+      cached.promise = null;
+      throw err;
+    });
+  }
+  
   try {
-    if (!process.env.MONGO_URI) {
-      throw new Error("MONGO_URI is missing in environment variables.");
-    }
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log('Connected to MongoDB Atlas');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
+    cached.conn = await cached.promise;
+    return cached.conn;
+  } catch (e) {
+    throw e;
   }
 };
 
 app.use(async (req, res, next) => {
-  await connectDB();
-  next();
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    // If DB fails, return 500 instantly so the frontend doesn't hang forever
+    return res.status(500).json({ error: 'Database connection failed' });
+  }
 });
 
 // Routes
