@@ -74,7 +74,7 @@ app.use('/api/upload', require('./routes/uploadRoutes'));
 
 // Basic route
 app.get('/api', (req, res) => {
-  res.send('SPEIT API is running correctly on Vercel!');
+  res.send('TrackMySpend API is running correctly on Vercel!');
 });
 
 // Local Development Server (Ignored by Vercel)

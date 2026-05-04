@@ -15,7 +15,7 @@ const Navbar = () => {
               <div className="bg-purple-100 dark:bg-purple-900/30 p-2 rounded-xl transition-colors">
                 <Wallet className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
-              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white transition-colors">SPEIT</span>
+              <span className="font-bold text-xl tracking-tight text-slate-900 dark:text-white transition-colors">TrackMySpend</span>
             </Link>
             <div className="hidden sm:ml-8 sm:flex sm:space-x-8">
               <NavLink
