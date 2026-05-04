@@ -26,16 +26,6 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
-// Intercept successful GET responses and save them to cache
-api.interceptors.response.use((response) => {
-  if (response.config.method === 'get') {
-    // Generate a unique cache key based on URL and params
-    const cacheKey = response.config.url + (response.config.params ? JSON.stringify(response.config.params) : '');
-    cache.set(cacheKey, response.data);
-  }
-  return response;
-});
-
 // Override api.get to implement Stale-While-Revalidate caching
 const originalGet = api.get;
 api.get = async (url, config = {}) => {
@@ -51,7 +41,10 @@ api.get = async (url, config = {}) => {
     return Promise.resolve({ data: cache.get(cacheKey) });
   }
   
-  return originalGet.call(api, url, config);
+  // If not in cache, wait for it and save it
+  const response = await originalGet.call(api, url, config);
+  cache.set(cacheKey, response.data);
+  return response;
 };
 
 export default api;
