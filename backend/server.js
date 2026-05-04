@@ -58,8 +58,12 @@ app.use(async (req, res, next) => {
     await connectDB();
     next();
   } catch (error) {
-    // If DB fails, return 500 instantly so the frontend doesn't hang forever
-    return res.status(500).json({ error: 'Database connection failed' });
+    // Return the exact error message so we can debug Vercel's connection issue
+    return res.status(500).json({ 
+      error: 'Database connection failed', 
+      message: error.message,
+      name: error.name
+    });
   }
 });
 
