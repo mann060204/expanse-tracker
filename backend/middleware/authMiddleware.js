@@ -9,7 +9,8 @@ const protect = [
     if (req.auth && req.auth.userId) {
       req.user = { 
         id: req.auth.userId,
-        orgId: req.auth.orgId || null
+        // Fallback to explicit header if the default session token lacks the org_id claim
+        orgId: req.headers['x-org-id'] || req.auth.orgId || null
       };
       next();
     } else {

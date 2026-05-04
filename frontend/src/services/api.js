@@ -13,6 +13,12 @@ api.interceptors.request.use(async (config) => {
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    
+    // Explicitly send the active Organization ID to the backend
+    // This fixes issues where the session token doesn't include the org_id by default
+    if (window.Clerk.organization) {
+      config.headers['x-org-id'] = window.Clerk.organization.id;
+    }
   }
   return config;
 });
