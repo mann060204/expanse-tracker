@@ -7,6 +7,7 @@ import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useOrganization } from '@clerk/clerk-react';
 import { Landmark, Wallet, TrendingUp, TrendingDown, PiggyBank } from 'lucide-react';
+import TransactionTable from '../components/TransactionTable';
 
 const PROGRESS_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#64748b'];
 
@@ -15,22 +16,24 @@ const Dashboard = () => {
   const [summary, setSummary] = useState({ bankBalance: 0, totalCredit: 0, totalDebit: 0, totalInvested: 0, totalIciciStipend: 0 });
   const [dailyData, setDailyData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
+  const [recentTransactions, setRecentTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [chartDays, setChartDays] = useState(30);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const { isDark } = useTheme();
 
-  const fetchData = async () => {
+  const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [summaryRes, dailyRes, categoryRes] = await Promise.all([
+      const [summaryRes, categoryRes, txRes] = await Promise.all([
         api.get('/analytics/summary'),
-        api.get('/analytics/daily?days=30'),
-        api.get(`/analytics/monthly-category?month=${selectedMonth}&year=${selectedYear}`)
+        api.get(`/analytics/monthly-category?month=${selectedMonth}&year=${selectedYear}`),
+        api.get('/transactions')
       ]);
       setSummary(summaryRes.data);
-      setDailyData(dailyRes.data);
       setCategoryData(categoryRes.data);
+      setRecentTransactions(txRes.data.slice(0, 10));
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
@@ -38,9 +41,22 @@ const Dashboard = () => {
     }
   };
 
+  const fetchDailyData = async () => {
+    try {
+      const dailyRes = await api.get(`/analytics/daily?days=${chartDays}`);
+      setDailyData(dailyRes.data);
+    } catch (error) {
+      console.error('Error fetching daily data:', error);
+    }
+  };
+
   useEffect(() => {
-    fetchData();
+    fetchDashboardData();
   }, [selectedMonth, selectedYear, organization?.id]);
+
+  useEffect(() => {
+    fetchDailyData();
+  }, [chartDays, organization?.id]);
 
   if (loading && summary.bankBalance === 0) {
     return <div className="py-10 text-center text-slate-500 dark:text-slate-400">Loading dashboard...</div>;
@@ -161,16 +177,24 @@ const Dashboard = () => {
 
       {/* Main Area Chart */}
       <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
-        <div className="flex justify-between items-center mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Expense Tracker</h3>
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex flex-wrap items-center gap-3 mt-2">
               <span className="text-2xl font-bold text-slate-900 dark:text-white">
                 ₹{summary.totalDebit.toLocaleString('en-IN')}
               </span>
-              <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs font-bold px-2 py-1 rounded-full transition-colors">
-                Last 30 Days
-              </span>
+              <select
+                value={chartDays}
+                onChange={(e) => setChartDays(Number(e.target.value))}
+                className="bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800/30 text-purple-700 dark:text-purple-400 text-xs font-bold px-3 py-1.5 rounded-full outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer transition-colors"
+              >
+                <option value={7}>Last 7 Days</option>
+                <option value={30}>Last 30 Days</option>
+                <option value={90}>Last 3 Months</option>
+                <option value={180}>Last 6 Months</option>
+                <option value={365}>Last 1 Year</option>
+              </select>
             </div>
           </div>
           <div className="flex items-center gap-4 text-sm font-medium">
@@ -354,6 +378,28 @@ const Dashboard = () => {
         </div>
         
       </div>
+
+      {/* Recent Transactions */}
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Recent Transactions</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Your 10 most recent financial activities</p>
+          </div>
+        </div>
+        
+        {recentTransactions.length > 0 ? (
+          <TransactionTable 
+            transactions={recentTransactions} 
+            // We do not pass onEdit or onDelete, so the actions column is hidden
+          />
+        ) : (
+          <div className="py-10 text-center text-slate-400 dark:text-slate-500 text-sm font-medium">
+            No recent transactions found.
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };
