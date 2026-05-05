@@ -15,12 +15,14 @@ const getSummary = async (req, res) => {
     let totalDebit = 0;
     let totalInvestedRaw = 0;
     let totalMfWithdrawn = 0;
+    let totalIciciStipend = 0;
 
     transactions.forEach((tx) => {
       if (tx.type === 'credit') totalCredit += tx.amount;
       if (tx.type === 'debit') totalDebit += tx.amount;
       if (tx.type === 'mf_transfer') totalInvestedRaw += tx.amount;
       if (tx.type === 'mf_withdrawal') totalMfWithdrawn += tx.amount;
+      if (tx.type === 'icici_stipend') totalIciciStipend += tx.amount;
     });
 
     const totalInvested = totalInvestedRaw - totalMfWithdrawn;
@@ -31,6 +33,7 @@ const getSummary = async (req, res) => {
       totalCredit,
       totalDebit,
       totalInvested,
+      totalIciciStipend,
     });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });

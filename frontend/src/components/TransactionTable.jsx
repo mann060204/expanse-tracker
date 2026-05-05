@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit2, Trash2, ArrowUpRight, ArrowDownRight, RefreshCw, ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
 
 const TransactionTable = ({ transactions, onEdit, onDelete }) => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,6 +24,8 @@ const TransactionTable = ({ transactions, onEdit, onDelete }) => {
         return <RefreshCw className="w-4 h-4 text-purple-500" />;
       case 'mf_withdrawal':
         return <RefreshCw className="w-4 h-4 text-emerald-600" />;
+      case 'icici_stipend':
+        return <GraduationCap className="w-4 h-4 text-orange-500" />;
       default:
         return null;
     }
@@ -39,6 +41,8 @@ const TransactionTable = ({ transactions, onEdit, onDelete }) => {
         return 'text-purple-600 dark:text-purple-400';
       case 'mf_withdrawal':
         return 'text-emerald-600';
+      case 'icici_stipend':
+        return 'text-orange-500';
       default:
         return 'text-slate-900 dark:text-white';
     }

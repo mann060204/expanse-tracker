@@ -6,12 +6,13 @@ import {
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useOrganization } from '@clerk/clerk-react';
+import { Landmark } from 'lucide-react';
 
 const PROGRESS_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#64748b'];
 
 const Dashboard = () => {
   const { organization } = useOrganization();
-  const [summary, setSummary] = useState({ bankBalance: 0, totalCredit: 0, totalDebit: 0, totalInvested: 0 });
+  const [summary, setSummary] = useState({ bankBalance: 0, totalCredit: 0, totalDebit: 0, totalInvested: 0, totalIciciStipend: 0 });
   const [dailyData, setDailyData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,6 +85,28 @@ const Dashboard = () => {
           <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Total Invested</p>
           <h2 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
             ₹{summary.totalInvested.toLocaleString('en-IN')}
+          </h2>
+        </div>
+      </div>
+
+      {/* Isolated ICICI Stipend Fund Card */}
+      <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-8 shadow-md text-white flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
+        <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4">
+          <Landmark className="w-48 h-48" />
+        </div>
+        <div className="relative z-10 mb-4 md:mb-0">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <Landmark className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-xl font-bold tracking-tight">ICICI Stipend Fund</h3>
+          </div>
+          <p className="text-orange-100 text-sm font-medium">Direct College Stipend Investment (Isolated from Main Bank Balance)</p>
+        </div>
+        <div className="relative z-10 text-left md:text-right">
+          <p className="text-orange-100 text-sm font-medium mb-1">Total Accumulated</p>
+          <h2 className="text-4xl font-bold tracking-tight">
+            ₹{summary.totalIciciStipend.toLocaleString('en-IN')}
           </h2>
         </div>
       </div>

@@ -17,7 +17,7 @@ const transactionSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['credit', 'debit', 'mf_transfer', 'mf_withdrawal'],
+    enum: ['credit', 'debit', 'mf_transfer', 'mf_withdrawal', 'icici_stipend'],
     required: true,
   },
   category: {

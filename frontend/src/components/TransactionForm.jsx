@@ -8,6 +8,7 @@ const TYPES = [
   { value: 'credit', label: 'Credit (Income)' },
   { value: 'mf_transfer', label: 'Mutual Fund Investment (Bank → MF)' },
   { value: 'mf_withdrawal', label: 'Mutual Fund Withdrawal (MF → Bank)' },
+  { value: 'icici_stipend', label: 'ICICI Stipend Fund (Isolated)' },
 ];
 
 const TransactionForm = ({ onClose, onSave, initialData = null }) => {
