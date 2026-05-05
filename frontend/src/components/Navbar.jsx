@@ -46,8 +46,8 @@ const Navbar = () => {
               </NavLink>
             </div>
           </div>
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center sm:ml-6">
+            <div className="flex items-center gap-2 sm:gap-4">
               <button 
                 onClick={toggleTheme}
                 className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
@@ -55,19 +55,21 @@ const Navbar = () => {
               >
                 {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
-              <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
-              <OrganizationSwitcher 
-                hidePersonal={false}
-                afterCreateOrganizationUrl="/"
-                afterLeaveOrganizationUrl="/"
-                afterSelectOrganizationUrl="/"
-                appearance={{
-                  elements: {
-                    organizationSwitcherTrigger: "focus:ring-2 focus:ring-purple-500 outline-none rounded-lg text-slate-900 dark:text-white",
-                  }
-                }}
-              />
-              <UserButton afterSignOutUrl="/sign-in" />
+              <div className="hidden sm:block h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
+              <div className="hidden sm:flex items-center gap-4">
+                <OrganizationSwitcher 
+                  hidePersonal={false}
+                  afterCreateOrganizationUrl="/"
+                  afterLeaveOrganizationUrl="/"
+                  afterSelectOrganizationUrl="/"
+                  appearance={{
+                    elements: {
+                      organizationSwitcherTrigger: "focus:ring-2 focus:ring-purple-500 outline-none rounded-lg text-slate-900 dark:text-white",
+                    }
+                  }}
+                />
+                <UserButton afterSignOutUrl="/sign-in" />
+              </div>
             </div>
           </div>
         </div>

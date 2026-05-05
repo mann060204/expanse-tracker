@@ -4,6 +4,8 @@ import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Navbar from './components/Navbar';
 
+import BottomNav from './components/BottomNav';
+
 function App() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors flex flex-col">
@@ -11,7 +13,7 @@ function App() {
         <Navbar />
       </SignedIn>
       
-      <div className="container mx-auto p-4 md:p-6 flex-grow">
+      <div className="container mx-auto p-4 md:p-6 flex-grow pb-24 sm:pb-6">
         <Routes>
           {/* Clerk Hosted Pages */}
           <Route path="/sign-in/*" element={<SignIn routing="path" path="/sign-in" />} />
@@ -57,6 +59,10 @@ function App() {
           </p>
         </div>
       </footer>
+
+      <SignedIn>
+        <BottomNav />
+      </SignedIn>
     </div>
   );
 }
