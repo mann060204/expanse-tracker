@@ -6,7 +6,7 @@ import {
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
 import { useOrganization } from '@clerk/clerk-react';
-import { Landmark } from 'lucide-react';
+import { Landmark, Wallet, TrendingUp, TrendingDown, PiggyBank } from 'lucide-react';
 
 const PROGRESS_COLORS = ['#f59e0b', '#ef4444', '#10b981', '#3b82f6', '#8b5cf6', '#64748b'];
 
@@ -61,53 +61,101 @@ const Dashboard = () => {
 
   return (
     <div className="py-8 space-y-8 max-w-7xl mx-auto">
-      {/* Top Stats Row */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-800 flex flex-col md:flex-row gap-8 md:gap-0 justify-between items-start md:items-center transition-colors">
-        <div className="flex-1 w-full md:border-r border-slate-200 dark:border-slate-800 px-4">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Bank Balance</p>
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            ₹{summary.bankBalance.toLocaleString('en-IN')}
-          </h2>
+      {/* Top Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Bank Balance Card */}
+        <div className="bg-gradient-to-br from-purple-600 to-indigo-600 rounded-3xl p-6 shadow-md text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4">
+            <Wallet className="w-32 h-32" />
+          </div>
+          <div className="relative z-10 flex items-center gap-3 mb-6">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <Wallet className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-bold tracking-tight text-purple-50">Bank Balance</h3>
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-4xl font-bold tracking-tight">₹{summary.bankBalance.toLocaleString('en-IN')}</h2>
+          </div>
         </div>
-        <div className="flex-1 w-full md:border-r border-slate-200 dark:border-slate-800 px-4 md:px-8">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Total Income</p>
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            ₹{summary.totalCredit.toLocaleString('en-IN')}
-          </h2>
+
+        {/* Total Income Card */}
+        <div className="bg-gradient-to-br from-emerald-500 to-teal-500 rounded-3xl p-6 shadow-md text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4">
+            <TrendingUp className="w-32 h-32" />
+          </div>
+          <div className="relative z-10 flex items-center gap-3 mb-6">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-bold tracking-tight text-emerald-50">Total Income</h3>
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-4xl font-bold tracking-tight">₹{summary.totalCredit.toLocaleString('en-IN')}</h2>
+          </div>
         </div>
-        <div className="flex-1 w-full md:border-r border-slate-200 dark:border-slate-800 px-4 md:px-8">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Total Expense</p>
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            ₹{summary.totalDebit.toLocaleString('en-IN')}
-          </h2>
-        </div>
-        <div className="flex-1 w-full px-4 md:px-8">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Total Invested</p>
-          <h2 className="text-4xl font-bold text-slate-900 dark:text-white tracking-tight">
-            ₹{summary.totalInvested.toLocaleString('en-IN')}
-          </h2>
+
+        {/* Total Expense Card */}
+        <div className="bg-gradient-to-br from-rose-500 to-red-500 rounded-3xl p-6 shadow-md text-white flex flex-col justify-between relative overflow-hidden">
+          <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4">
+            <TrendingDown className="w-32 h-32" />
+          </div>
+          <div className="relative z-10 flex items-center gap-3 mb-6">
+            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+              <TrendingDown className="w-5 h-5 text-white" />
+            </div>
+            <h3 className="text-lg font-bold tracking-tight text-rose-50">Total Expense</h3>
+          </div>
+          <div className="relative z-10">
+            <h2 className="text-4xl font-bold tracking-tight">₹{summary.totalDebit.toLocaleString('en-IN')}</h2>
+          </div>
         </div>
       </div>
 
-      {/* Isolated ICICI Stipend Fund Card */}
-      <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-8 shadow-md text-white flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
-        <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4">
-          <Landmark className="w-48 h-48" />
-        </div>
-        <div className="relative z-10 mb-4 md:mb-0">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
-              <Landmark className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-xl font-bold tracking-tight">ICICI Stipend Fund</h3>
+      {/* Investments Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Total Investment (SBI MF) Card */}
+        <div className="bg-gradient-to-r from-blue-600 to-cyan-500 rounded-3xl p-8 shadow-md text-white flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
+          <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4">
+            <PiggyBank className="w-48 h-48" />
           </div>
-          <p className="text-orange-100 text-sm font-medium">Direct College Stipend Investment (Isolated from Main Bank Balance)</p>
+          <div className="relative z-10 mb-4 md:mb-0">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                <PiggyBank className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold tracking-tight">Total Investment</h3>
+            </div>
+            <p className="text-blue-100 text-sm font-medium">SBI Mutual Funds & Other Investments</p>
+          </div>
+          <div className="relative z-10 text-left md:text-right">
+            <p className="text-blue-100 text-sm font-medium mb-1">Total Accumulated</p>
+            <h2 className="text-4xl font-bold tracking-tight">
+              ₹{summary.totalInvested.toLocaleString('en-IN')}
+            </h2>
+          </div>
         </div>
-        <div className="relative z-10 text-left md:text-right">
-          <p className="text-orange-100 text-sm font-medium mb-1">Total Accumulated</p>
-          <h2 className="text-4xl font-bold tracking-tight">
-            ₹{summary.totalIciciStipend.toLocaleString('en-IN')}
-          </h2>
+
+        {/* Isolated ICICI Stipend Fund Card */}
+        <div className="bg-gradient-to-r from-orange-500 to-amber-500 rounded-3xl p-8 shadow-md text-white flex flex-col md:flex-row justify-between items-start md:items-center relative overflow-hidden">
+          <div className="absolute right-0 top-0 opacity-10 translate-x-4 -translate-y-4">
+            <Landmark className="w-48 h-48" />
+          </div>
+          <div className="relative z-10 mb-4 md:mb-0">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+                <Landmark className="w-6 h-6 text-white" />
+              </div>
+              <h3 className="text-xl font-bold tracking-tight">ICICI Stipend Fund</h3>
+            </div>
+            <p className="text-orange-100 text-sm font-medium">Direct College Stipend Investment (Isolated)</p>
+          </div>
+          <div className="relative z-10 text-left md:text-right">
+            <p className="text-orange-100 text-sm font-medium mb-1">Total Accumulated</p>
+            <h2 className="text-4xl font-bold tracking-tight">
+              ₹{summary.totalIciciStipend.toLocaleString('en-IN')}
+            </h2>
+          </div>
         </div>
       </div>
 
