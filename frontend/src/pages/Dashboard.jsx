@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  BarChart, Bar, Cell
+  PieChart, Pie, Cell
 } from 'recharts';
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
@@ -220,51 +220,65 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Daily Costing Bar Chart */}
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
-          <div className="mb-8">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Daily Costing</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Your expenses over the last 7 days</p>
+        {/* Cash Flow Overview Donut Chart */}
+        <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors flex flex-col">
+          <div className="mb-4">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Cash Flow Overview</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Income vs Expenses vs Investments</p>
           </div>
           
-          <div className="h-64 w-full mt-4">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={recentDaysData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="5 5" vertical={false} stroke={isDark ? '#334155' : '#e2e8f0'} />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 12 }} 
-                  dy={10}
-                  tickFormatter={(val) => {
-                    const d = new Date(val);
-                    return d.toLocaleDateString('default', { weekday: 'short' });
-                  }}
-                />
-                <YAxis 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 12 }} 
-                  tickFormatter={(value) => value > 0 ? `${value / 1000}k` : 0}
-                />
-                <RechartsTooltip 
-                  cursor={{ fill: 'transparent' }}
-                  contentStyle={tooltipStyle}
-                  itemStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
-                  labelFormatter={(label) => new Date(label).toLocaleDateString('en-IN', { weekday: 'long', month: 'short', day: 'numeric' })}
-                  formatter={(value) => [`₹${value}`, 'Expense']}
-                />
-                <Bar dataKey="amount" radius={[6, 6, 6, 6]} barSize={24}>
-                  {recentDaysData.map((entry, index) => (
-                    <Cell 
-                      key={`cell-${index}`} 
-                      fill={entry.amount === maxRecentExpense && entry.amount > 0 ? '#8b5cf6' : (isDark ? '#334155' : '#e2e8f0')} 
+          <div className="flex-1 w-full min-h-[250px] relative flex flex-col justify-center mt-4">
+            {summary.totalCredit > 0 || summary.totalDebit > 0 || summary.totalInvested > 0 ? (
+              <>
+                <ResponsiveContainer width="100%" height={250}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Income', value: summary.totalCredit, color: '#10b981' },
+                        { name: 'Expense', value: summary.totalDebit, color: '#ef4444' },
+                        { name: 'Invested', value: summary.totalInvested, color: '#8b5cf6' }
+                      ].filter(item => item.value > 0)}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={70}
+                      outerRadius={95}
+                      paddingAngle={5}
+                      dataKey="value"
+                      stroke="none"
+                    >
+                      {[
+                        { name: 'Income', value: summary.totalCredit, color: '#10b981' },
+                        { name: 'Expense', value: summary.totalDebit, color: '#ef4444' },
+                        { name: 'Invested', value: summary.totalInvested, color: '#8b5cf6' }
+                      ].filter(item => item.value > 0).map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip 
+                      contentStyle={tooltipStyle}
+                      itemStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
+                      formatter={(value) => [`₹${value.toLocaleString('en-IN')}`, 'Amount']}
                     />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex justify-center gap-6 mt-6 flex-wrap">
+                  {[
+                    { name: 'Income', color: '#10b981' },
+                    { name: 'Expense', color: '#ef4444' },
+                    { name: 'Invested', color: '#8b5cf6' }
+                  ].map(entry => (
+                    <div key={entry.name} className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }}></div>
+                      <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{entry.name}</span>
+                    </div>
                   ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+                </div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-slate-400 dark:text-slate-500 text-sm font-medium">
+                No cash flow data available.
+              </div>
+            )}
           </div>
         </div>
         
