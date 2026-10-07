@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, BarChart, Bar, Rectangle
+  PieChart, Pie, Cell, BarChart, Bar, Rectangle, LabelList
 } from 'recharts';
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
@@ -23,6 +23,7 @@ const Dashboard = () => {
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [monthlyTotals, setMonthlyTotals] = useState([]);
   const [barChartYear, setBarChartYear] = useState(new Date().getFullYear());
+  const [selectedBarMonth, setSelectedBarMonth] = useState(null);
   const { isDark } = useTheme();
 
   const fetchDashboardData = async () => {
@@ -71,6 +72,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchMonthlyTotals();
+    setSelectedBarMonth(null);
   }, [barChartYear, organization?.id]);
 
   if (loading && summary.bankBalance === 0) {
@@ -290,7 +292,12 @@ const Dashboard = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Monthly Income vs Expense</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Month-wise breakdown for the selected year</p>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              {selectedBarMonth
+                ? <span>Showing <span className="font-bold text-purple-600 dark:text-purple-400">{selectedBarMonth} {barChartYear}</span> — <button onClick={() => setSelectedBarMonth(null)} className="text-xs underline text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">Show Full Year</button></span>
+                : `Full year breakdown for ${barChartYear} — click a bar to drill down`
+              }
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-3 text-sm font-medium">
@@ -319,36 +326,43 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Yearly Summary Strip */}
+        {/* Dynamic Summary Strip */}
         {(() => {
-          const totalIncome = monthlyTotals.reduce((s, m) => s + m.income, 0);
-          const totalExpense = monthlyTotals.reduce((s, m) => s + m.expense, 0);
+          const displayMonth = selectedBarMonth ? monthlyTotals.find(m => m.month === selectedBarMonth) : null;
+          const totalIncome = displayMonth ? displayMonth.income : monthlyTotals.reduce((s, m) => s + m.income, 0);
+          const totalExpense = displayMonth ? displayMonth.expense : monthlyTotals.reduce((s, m) => s + m.expense, 0);
           const totalSavings = Math.max(totalIncome - totalExpense, 0);
+          const label = displayMonth ? selectedBarMonth : 'Full Year';
           return (
             <div className="grid grid-cols-3 gap-4 mb-6">
-              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4 text-center">
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">Total Income</p>
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4 text-center transition-all duration-300">
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">{label} Income</p>
                 <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">₹{totalIncome.toLocaleString('en-IN')}</p>
               </div>
-              <div className="bg-rose-50 dark:bg-rose-900/20 rounded-2xl p-4 text-center">
-                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-1">Total Expense</p>
+              <div className="bg-rose-50 dark:bg-rose-900/20 rounded-2xl p-4 text-center transition-all duration-300">
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-1">{label} Expense</p>
                 <p className="text-lg font-bold text-rose-700 dark:text-rose-300">₹{totalExpense.toLocaleString('en-IN')}</p>
               </div>
-              <div className="bg-violet-50 dark:bg-violet-900/20 rounded-2xl p-4 text-center">
-                <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 mb-1">Net Savings</p>
+              <div className="bg-violet-50 dark:bg-violet-900/20 rounded-2xl p-4 text-center transition-all duration-300">
+                <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 mb-1">{label} Savings</p>
                 <p className="text-lg font-bold text-violet-700 dark:text-violet-300">₹{totalSavings.toLocaleString('en-IN')}</p>
               </div>
             </div>
           );
         })()}
 
-        <div className="h-80 w-full">
+        <div className="h-80 w-full cursor-pointer">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={monthlyTotals}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
               barSize={10}
               barGap={3}
+              onClick={(data) => {
+                if (data && data.activeLabel) {
+                  setSelectedBarMonth(prev => prev === data.activeLabel ? null : data.activeLabel);
+                }
+              }}
             >
               <defs>
                 <linearGradient id="incomeBarGradient" x1="0" y1="0" x2="0" y2="1">
@@ -387,9 +401,24 @@ const Dashboard = () => {
                   name === 'income' ? 'Income' : name === 'expense' ? 'Expense' : 'Savings'
                 ]}
               />
-              <Bar dataKey="income" fill="url(#incomeBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#10b981" radius={[5, 5, 0, 0]} />} />
-              <Bar dataKey="expense" fill="url(#expenseBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#f43f5e" radius={[5, 5, 0, 0]} />} />
-              <Bar dataKey="savings" fill="url(#savingsBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#8b5cf6" radius={[5, 5, 0, 0]} />} />
+              <Bar dataKey="income" fill="url(#incomeBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#10b981" radius={[5, 5, 0, 0]} />}>
+                {monthlyTotals.map((entry) => (
+                  <Cell key={`income-${entry.month}`} fillOpacity={!selectedBarMonth || entry.month === selectedBarMonth ? 1 : 0.2} />
+                ))}
+                {selectedBarMonth && <LabelList dataKey="income" position="top" formatter={(v) => v > 0 ? `₹${(v/1000).toFixed(1)}k` : ''} style={{ fill: '#10b981', fontSize: 10, fontWeight: 700 }} />}
+              </Bar>
+              <Bar dataKey="expense" fill="url(#expenseBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#f43f5e" radius={[5, 5, 0, 0]} />}>
+                {monthlyTotals.map((entry) => (
+                  <Cell key={`expense-${entry.month}`} fillOpacity={!selectedBarMonth || entry.month === selectedBarMonth ? 1 : 0.2} />
+                ))}
+                {selectedBarMonth && <LabelList dataKey="expense" position="top" formatter={(v) => v > 0 ? `₹${(v/1000).toFixed(1)}k` : ''} style={{ fill: '#f43f5e', fontSize: 10, fontWeight: 700 }} />}
+              </Bar>
+              <Bar dataKey="savings" fill="url(#savingsBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#8b5cf6" radius={[5, 5, 0, 0]} />}>
+                {monthlyTotals.map((entry) => (
+                  <Cell key={`savings-${entry.month}`} fillOpacity={!selectedBarMonth || entry.month === selectedBarMonth ? 1 : 0.2} />
+                ))}
+                {selectedBarMonth && <LabelList dataKey="savings" position="top" formatter={(v) => v > 0 ? `₹${(v/1000).toFixed(1)}k` : ''} style={{ fill: '#8b5cf6', fontSize: 10, fontWeight: 700 }} />}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </div>
