@@ -131,8 +131,53 @@ const getMonthlyCategory = async (req, res) => {
   }
 };
 
+// @desc    Get month-wise total expenses for a year
+// @route   GET /api/analytics/monthly-totals
+// @access  Private
+const getMonthlyTotals = async (req, res) => {
+  try {
+    const year = parseInt(req.query.year) || new Date().getFullYear();
+
+    const startOfYear = new Date(year, 0, 1);
+    const endOfYear = new Date(year, 11, 31, 23, 59, 59);
+
+    const matchObj = req.user.orgId
+      ? { orgId: req.user.orgId }
+      : { userId: req.user.id, $or: [{ orgId: { $exists: false } }, { orgId: null }] };
+
+    const monthlyData = await Transaction.aggregate([
+      {
+        $match: {
+          ...matchObj,
+          type: 'debit',
+          date: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: '$date' },
+          total: { $sum: '$amount' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    // Build full 12-month array, filling missing months with 0
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const result = monthNames.map((month, index) => {
+      const found = monthlyData.find((d) => d._id === index + 1);
+      return { month, total: found ? found.total : 0 };
+    });
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+};
+
 module.exports = {
   getSummary,
   getDailyExpenses,
   getMonthlyCategory,
+  getMonthlyTotals,
 };

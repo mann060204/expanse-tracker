@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
-  PieChart, Pie, Cell
+  PieChart, Pie, Cell, BarChart, Bar, Rectangle
 } from 'recharts';
 import api from '../services/api';
 import { useTheme } from '../context/ThemeContext';
@@ -21,6 +21,8 @@ const Dashboard = () => {
   const [chartDays, setChartDays] = useState(30);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [monthlyTotals, setMonthlyTotals] = useState([]);
+  const [barChartYear, setBarChartYear] = useState(new Date().getFullYear());
   const { isDark } = useTheme();
 
   const fetchDashboardData = async () => {
@@ -50,6 +52,15 @@ const Dashboard = () => {
     }
   };
 
+  const fetchMonthlyTotals = async () => {
+    try {
+      const res = await api.get(`/analytics/monthly-totals?year=${barChartYear}`);
+      setMonthlyTotals(res.data);
+    } catch (error) {
+      console.error('Error fetching monthly totals:', error);
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, [selectedMonth, selectedYear, organization?.id]);
@@ -57,6 +68,10 @@ const Dashboard = () => {
   useEffect(() => {
     fetchDailyData();
   }, [chartDays, organization?.id]);
+
+  useEffect(() => {
+    fetchMonthlyTotals();
+  }, [barChartYear, organization?.id]);
 
   if (loading && summary.bankBalance === 0) {
     return <div className="py-10 text-center text-slate-500 dark:text-slate-400">Loading dashboard...</div>;
@@ -265,6 +280,68 @@ const Dashboard = () => {
                 activeDot={{ r: 6, fill: '#8b5cf6', stroke: isDark ? '#0f172a' : '#fff', strokeWidth: 2 }}
               />
             </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Month-wise Total Expense Bar Chart */}
+      <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Monthly Expense Overview</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Total expenses per month for the selected year</p>
+          </div>
+          <select
+            value={barChartYear}
+            onChange={(e) => setBarChartYear(Number(e.target.value))}
+            className="bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/30 text-rose-700 dark:text-rose-400 text-xs font-bold px-3 py-1.5 rounded-full outline-none focus:ring-2 focus:ring-rose-500/50 cursor-pointer transition-colors"
+          >
+            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((yr) => (
+              <option key={yr} value={yr}>{yr}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="h-80 w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={monthlyTotals}
+              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              barSize={28}
+            >
+              <defs>
+                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.9} />
+                  <stop offset="100%" stopColor="#fb923c" stopOpacity={0.7} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="5 5" vertical={false} stroke={isDark ? '#334155' : '#e2e8f0'} />
+              <XAxis
+                dataKey="month"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 12, fontWeight: 600 }}
+                dy={10}
+              />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: isDark ? '#64748b' : '#94a3b8', fontSize: 12 }}
+                tickFormatter={(value) => value > 0 ? `${(value / 1000).toFixed(0)}k` : 0}
+              />
+              <RechartsTooltip
+                contentStyle={tooltipStyle}
+                itemStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
+                cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', radius: 8 }}
+                formatter={(value) => [`₹${value.toLocaleString('en-IN')}`, 'Total Expense']}
+              />
+              <Bar
+                dataKey="total"
+                fill="url(#barGradient)"
+                radius={[8, 8, 0, 0]}
+                activeBar={<Rectangle fill="#f43f5e" radius={[8, 8, 0, 0]} />}
+              />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
