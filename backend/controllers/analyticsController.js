@@ -167,10 +167,13 @@ const getMonthlyTotals = async (req, res) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const result = monthNames.map((month, index) => {
       const found = monthlyData.find((d) => d._id === index + 1);
+      const income = found ? found.income : 0;
+      const expense = found ? found.expense : 0;
       return {
         month,
-        expense: found ? found.expense : 0,
-        income: found ? found.income : 0,
+        expense,
+        income,
+        savings: Math.max(income - expense, 0), // only show positive savings
       };
     });
 

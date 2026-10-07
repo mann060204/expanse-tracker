@@ -284,9 +284,10 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Month-wise Income & Expense Bar Chart */}
+      {/* Month-wise Income, Expense & Savings Bar Chart */}
       <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white">Monthly Income vs Expense</h3>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Month-wise breakdown for the selected year</p>
@@ -301,6 +302,10 @@ const Dashboard = () => {
                 <div className="w-3 h-3 rounded-full bg-rose-500"></div>
                 <span className="text-slate-500 dark:text-slate-400">Expense</span>
               </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-violet-500"></div>
+                <span className="text-slate-500 dark:text-slate-400">Savings</span>
+              </div>
             </div>
             <select
               value={barChartYear}
@@ -314,13 +319,36 @@ const Dashboard = () => {
           </div>
         </div>
 
+        {/* Yearly Summary Strip */}
+        {(() => {
+          const totalIncome = monthlyTotals.reduce((s, m) => s + m.income, 0);
+          const totalExpense = monthlyTotals.reduce((s, m) => s + m.expense, 0);
+          const totalSavings = Math.max(totalIncome - totalExpense, 0);
+          return (
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4 text-center">
+                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mb-1">Total Income</p>
+                <p className="text-lg font-bold text-emerald-700 dark:text-emerald-300">₹{totalIncome.toLocaleString('en-IN')}</p>
+              </div>
+              <div className="bg-rose-50 dark:bg-rose-900/20 rounded-2xl p-4 text-center">
+                <p className="text-xs font-semibold text-rose-600 dark:text-rose-400 mb-1">Total Expense</p>
+                <p className="text-lg font-bold text-rose-700 dark:text-rose-300">₹{totalExpense.toLocaleString('en-IN')}</p>
+              </div>
+              <div className="bg-violet-50 dark:bg-violet-900/20 rounded-2xl p-4 text-center">
+                <p className="text-xs font-semibold text-violet-600 dark:text-violet-400 mb-1">Net Savings</p>
+                <p className="text-lg font-bold text-violet-700 dark:text-violet-300">₹{totalSavings.toLocaleString('en-IN')}</p>
+              </div>
+            </div>
+          );
+        })()}
+
         <div className="h-80 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
               data={monthlyTotals}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              barSize={14}
-              barGap={4}
+              barSize={10}
+              barGap={3}
             >
               <defs>
                 <linearGradient id="incomeBarGradient" x1="0" y1="0" x2="0" y2="1">
@@ -330,6 +358,10 @@ const Dashboard = () => {
                 <linearGradient id="expenseBarGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
                   <stop offset="100%" stopColor="#fb923c" stopOpacity={0.7} />
+                </linearGradient>
+                <linearGradient id="savingsBarGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8b5cf6" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#a78bfa" stopOpacity={0.7} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="5 5" vertical={false} stroke={isDark ? '#334155' : '#e2e8f0'} />
@@ -352,21 +384,12 @@ const Dashboard = () => {
                 cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', radius: 8 }}
                 formatter={(value, name) => [
                   `₹${value.toLocaleString('en-IN')}`,
-                  name === 'income' ? 'Income' : 'Expense'
+                  name === 'income' ? 'Income' : name === 'expense' ? 'Expense' : 'Savings'
                 ]}
               />
-              <Bar
-                dataKey="income"
-                fill="url(#incomeBarGradient)"
-                radius={[6, 6, 0, 0]}
-                activeBar={<Rectangle fill="#10b981" radius={[6, 6, 0, 0]} />}
-              />
-              <Bar
-                dataKey="expense"
-                fill="url(#expenseBarGradient)"
-                radius={[6, 6, 0, 0]}
-                activeBar={<Rectangle fill="#f43f5e" radius={[6, 6, 0, 0]} />}
-              />
+              <Bar dataKey="income" fill="url(#incomeBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#10b981" radius={[5, 5, 0, 0]} />} />
+              <Bar dataKey="expense" fill="url(#expenseBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#f43f5e" radius={[5, 5, 0, 0]} />} />
+              <Bar dataKey="savings" fill="url(#savingsBarGradient)" radius={[5, 5, 0, 0]} activeBar={<Rectangle fill="#8b5cf6" radius={[5, 5, 0, 0]} />} />
             </BarChart>
           </ResponsiveContainer>
         </div>
