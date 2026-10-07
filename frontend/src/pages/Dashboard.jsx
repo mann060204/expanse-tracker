@@ -284,22 +284,34 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Month-wise Total Expense Bar Chart */}
+      {/* Month-wise Income & Expense Bar Chart */}
       <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800 transition-colors">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Monthly Expense Overview</h3>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Total expenses per month for the selected year</p>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Monthly Income vs Expense</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Month-wise breakdown for the selected year</p>
           </div>
-          <select
-            value={barChartYear}
-            onChange={(e) => setBarChartYear(Number(e.target.value))}
-            className="bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/30 text-rose-700 dark:text-rose-400 text-xs font-bold px-3 py-1.5 rounded-full outline-none focus:ring-2 focus:ring-rose-500/50 cursor-pointer transition-colors"
-          >
-            {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((yr) => (
-              <option key={yr} value={yr}>{yr}</option>
-            ))}
-          </select>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 text-sm font-medium">
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                <span className="text-slate-500 dark:text-slate-400">Income</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-rose-500"></div>
+                <span className="text-slate-500 dark:text-slate-400">Expense</span>
+              </div>
+            </div>
+            <select
+              value={barChartYear}
+              onChange={(e) => setBarChartYear(Number(e.target.value))}
+              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold px-3 py-1.5 rounded-full outline-none focus:ring-2 focus:ring-purple-500/50 cursor-pointer transition-colors"
+            >
+              {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((yr) => (
+                <option key={yr} value={yr}>{yr}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="h-80 w-full">
@@ -307,11 +319,16 @@ const Dashboard = () => {
             <BarChart
               data={monthlyTotals}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              barSize={28}
+              barSize={14}
+              barGap={4}
             >
               <defs>
-                <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.9} />
+                <linearGradient id="incomeBarGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#10b981" stopOpacity={0.95} />
+                  <stop offset="100%" stopColor="#34d399" stopOpacity={0.7} />
+                </linearGradient>
+                <linearGradient id="expenseBarGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#f43f5e" stopOpacity={0.95} />
                   <stop offset="100%" stopColor="#fb923c" stopOpacity={0.7} />
                 </linearGradient>
               </defs>
@@ -333,13 +350,22 @@ const Dashboard = () => {
                 contentStyle={tooltipStyle}
                 itemStyle={{ color: isDark ? '#f8fafc' : '#0f172a' }}
                 cursor={{ fill: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)', radius: 8 }}
-                formatter={(value) => [`₹${value.toLocaleString('en-IN')}`, 'Total Expense']}
+                formatter={(value, name) => [
+                  `₹${value.toLocaleString('en-IN')}`,
+                  name === 'income' ? 'Income' : 'Expense'
+                ]}
               />
               <Bar
-                dataKey="total"
-                fill="url(#barGradient)"
-                radius={[8, 8, 0, 0]}
-                activeBar={<Rectangle fill="#f43f5e" radius={[8, 8, 0, 0]} />}
+                dataKey="income"
+                fill="url(#incomeBarGradient)"
+                radius={[6, 6, 0, 0]}
+                activeBar={<Rectangle fill="#10b981" radius={[6, 6, 0, 0]} />}
+              />
+              <Bar
+                dataKey="expense"
+                fill="url(#expenseBarGradient)"
+                radius={[6, 6, 0, 0]}
+                activeBar={<Rectangle fill="#f43f5e" radius={[6, 6, 0, 0]} />}
               />
             </BarChart>
           </ResponsiveContainer>

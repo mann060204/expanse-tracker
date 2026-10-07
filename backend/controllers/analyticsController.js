@@ -131,7 +131,7 @@ const getMonthlyCategory = async (req, res) => {
   }
 };
 
-// @desc    Get month-wise total expenses for a year
+// @desc    Get month-wise total expenses and income for a year
 // @route   GET /api/analytics/monthly-totals
 // @access  Private
 const getMonthlyTotals = async (req, res) => {
@@ -149,14 +149,15 @@ const getMonthlyTotals = async (req, res) => {
       {
         $match: {
           ...matchObj,
-          type: 'debit',
+          type: { $in: ['debit', 'credit'] },
           date: { $gte: startOfYear, $lte: endOfYear },
         },
       },
       {
         $group: {
           _id: { $month: '$date' },
-          total: { $sum: '$amount' },
+          expense: { $sum: { $cond: [{ $eq: ['$type', 'debit'] }, '$amount', 0] } },
+          income: { $sum: { $cond: [{ $eq: ['$type', 'credit'] }, '$amount', 0] } },
         },
       },
       { $sort: { _id: 1 } },
@@ -166,7 +167,11 @@ const getMonthlyTotals = async (req, res) => {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const result = monthNames.map((month, index) => {
       const found = monthlyData.find((d) => d._id === index + 1);
-      return { month, total: found ? found.total : 0 };
+      return {
+        month,
+        expense: found ? found.expense : 0,
+        income: found ? found.income : 0,
+      };
     });
 
     res.json(result);
